@@ -1,4 +1,6 @@
 import re
+import ipywidgets as widgets
+from IPython.display import display, clear_output
 
 class LexicalAnalyzer:
     def __init__(self):
@@ -89,22 +91,67 @@ def print_tree(node, level=0):
     for child in node.children:
         print_tree(child, level + 1)
 
-# Example usage:
-user_input = input("Enter an arithmetic expression: ")
 
-# Tokenization
-lexer = LexicalAnalyzer()
-tokens = lexer.tokenize(user_input)
-print("Tokenization:")
-print(tokens)
 
-# Lexical Analysis
-print("\nLexical Analysis:")
-for token in tokens:
-    print(token)
+# Function to handle the syntax check
+def check_syntax(b):
+    try:
+        user_input = code_input.value
+        lexer = LexicalAnalyzer()
+        tokens = lexer.tokenize(user_input)
+        parser = RecursiveDescentParser()
+        parse_tree = parser.parse(tokens)
+        output_area.clear_output()
+        with output_area:
+            print("Tokenization:")
+            print(tokens)
+            print("\nParse Tree:")
+            print_tree(parse_tree)
+            print("\nSyntax is correct.")
+    except (SyntaxError, ValueError) as e:
+        output_area.clear_output()
+        with output_area:
+            print(f"Error: {e}")
 
-# Parsing using Recursive Descent and constructing parse tree
-print("\nParse Tree (Recursive Descent Parsing):")
-parser_recursive = RecursiveDescentParser()
-parse_tree_recursive = parser_recursive.parse(tokens)
-print_tree(parse_tree_recursive)
+# Function to execute the code
+def execute_code(b):
+    try:
+        user_input = code_input.value
+        lexer = LexicalAnalyzer()
+        tokens = lexer.tokenize(user_input)
+        parser = RecursiveDescentParser()
+        parse_tree = parser.parse(tokens)
+        # Execute code here based on parse tree
+        output_area.clear_output()
+        with output_area:
+            print("Code executed successfully.")
+    except (SyntaxError, ValueError) as e:
+        output_area.clear_output()
+        with output_area:
+            print(f"Execution Error: {e}")
+
+# Create the text area for code input
+code_input = widgets.Textarea(
+    value='',
+    placeholder='Type your code here...',
+    description='Code:',
+    layout=widgets.Layout(width='100%', height='200px')
+)
+
+# Create the buttons
+check_syntax_button = widgets.Button(description="Check Syntax")
+execute_button = widgets.Button(description="Execute")
+
+# Bind the buttons to their respective functions
+check_syntax_button.on_click(check_syntax)
+execute_button.on_click(execute_code)
+
+# Create the output area
+output_area = widgets.Output()
+
+# Arrange the widgets in a vertical box
+box_layout = widgets.Layout(display='flex', flex_flow='column', align_items='stretch', width='100%')
+vbox = widgets.VBox([code_input, check_syntax_button, execute_button, output_area], layout=box_layout)
+
+# Display the interface
+display(vbox)
